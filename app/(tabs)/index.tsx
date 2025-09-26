@@ -4,17 +4,36 @@ import Button from "@/components/Button";
 
 const PlaceholderImage = require("@/assets/images/background-image.png");
 
+import * as ImagePicker from "expo-image-picker";
+import React from "react";
+
 export default function Index() {
+  // persisteing the current selected image
+  const [selectedImage, setSelectedImage] = React.useState<string | null>();
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      console.log(result);
+      setSelectedImage(result?.assets[0].uri);
+    } else {
+      alert("You did not select any image.");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.imageContainer}>
-        <ImageViewer source={PlaceholderImage} />
+        <ImageViewer source={PlaceholderImage} selectedImage={selectedImage} />
       </View>
       <Button
         title="choose a photo"
-        onPressFn={() => {
-          console.log("button pressed");
-        }}
+        onPressFn={() => pickImage()}
         btnStyle={{
           backgroundColor: "#1A1A1A",
           marginTop: 20,

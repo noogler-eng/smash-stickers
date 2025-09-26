@@ -3,10 +3,17 @@ import { ImageSourcePropType, StyleSheet } from "react-native";
 
 export default function ImageViewer({
   source,
+  selectedImage,
 }: {
   source: ImageSourcePropType;
+  selectedImage: string | null | undefined;
 }) {
-  return <Image source={source} style={styles.imageStyle} />;
+  return (
+    <Image
+      source={selectedImage ? selectedImage : source}
+      style={styles.imageStyle}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
