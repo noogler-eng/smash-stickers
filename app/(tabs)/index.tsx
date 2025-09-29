@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  SafeAreaView,
-} from "react-native";
+import { StyleSheet, Text, View, SafeAreaView } from "react-native";
 import ImageViewer from "@/components/ImageViewer";
 import Button from "@/components/Button";
 
@@ -15,6 +10,7 @@ import IconButton from "@/components/IconButton";
 import CircleButton from "@/components/CircleButton";
 import EmojiPicker from "@/components/EmojiPicker";
 import EmojiList from "@/components/EmojiList";
+import EmojiSticker from "@/components/EmojiSticker";
 
 export default function Index() {
   // persisteing the current selected image
@@ -39,14 +35,20 @@ export default function Index() {
     }
   };
 
+  // removing the options
+  // removing the selected emoji
   const onReset = () => {
     setIsShownOptions(false);
+    setPickedEmoji(null);
   };
 
+  // adding the sticker
+  // showing the emoji picker
   const onAddSticker = () => {
     setIsEmojiPickerVisible(true);
   };
 
+  // closing the emoji picker
   const onCloseEmojiPicker = () => {
     setIsEmojiPickerVisible(false);
   };
@@ -63,9 +65,14 @@ export default function Index() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.imageContainer}>
+        {/* showing the selected emoji on the image.... */}
         <ImageViewer source={PlaceholderImage} selectedImage={selectedImage} />
+        {pickedEmoji && (
+          <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
+        )}
       </View>
       {isShownOptions ? (
+        // show options
         <View style={styles.optionsContainer}>
           <View style={styles.optionsRow}>
             <IconButton icon="refresh" label="reset" onPress={onReset} />
@@ -103,6 +110,7 @@ export default function Index() {
           />
         </View>
       )}
+
       <EmojiPicker
         isVisible={isEmojiPickerVisible}
         onClose={onCloseEmojiPicker}
