@@ -1,15 +1,27 @@
-import { StyleSheet, Text, View, SafeAreaView } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+} from "react-native";
 import ImageViewer from "@/components/ImageViewer";
 import Button from "@/components/Button";
 
 const PlaceholderImage = require("@/assets/images/background-image.png");
 
 import * as ImagePicker from "expo-image-picker";
-import React from "react";
+import React, { useState } from "react";
+import IconButton from "@/components/IconButton";
+import CircleButton from "@/components/CircleButton";
+import EmojiPicker from "@/components/EmojiPicker";
+import EmojiList from "@/components/EmojiList";
 
 export default function Index() {
   // persisteing the current selected image
   const [selectedImage, setSelectedImage] = React.useState<string | null>();
+  const [isShownOptions, setIsShownOptions] = React.useState(false);
+  const [isEmojiPickerVisible, setIsEmojiPickerVisible] = React.useState(false);
+  const [pickedEmoji, setPickedEmoji] = useState<any>();
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -21,9 +33,31 @@ export default function Index() {
     if (!result.canceled) {
       console.log(result);
       setSelectedImage(result?.assets[0].uri);
+      setIsShownOptions(true);
     } else {
       alert("You did not select any image.");
     }
+  };
+
+  const onReset = () => {
+    setIsShownOptions(false);
+  };
+
+  const onAddSticker = () => {
+    setIsEmojiPickerVisible(true);
+  };
+
+  const onCloseEmojiPicker = () => {
+    setIsEmojiPickerVisible(false);
+  };
+
+  const onDownload = async () => {
+    // we are downloading the image and saving it
+  };
+
+  const setPickedEmojiFn = (emoji: any) => {
+    setPickedEmoji(emoji);
+    setIsEmojiPickerVisible(false);
   };
 
   return (
@@ -31,32 +65,53 @@ export default function Index() {
       <View style={styles.imageContainer}>
         <ImageViewer source={PlaceholderImage} selectedImage={selectedImage} />
       </View>
-      <Button
-        title="choose a photo"
-        onPressFn={() => pickImage()}
-        btnStyle={{
-          backgroundColor: "#1A1A1A",
-          marginTop: 20,
-          borderWidth: 1,
-          borderColor: "gray",
-        }}
-        textStyle={{ color: "white", fontWeight: "bold" }}
-      />
+      {isShownOptions ? (
+        <View style={styles.optionsContainer}>
+          <View style={styles.optionsRow}>
+            <IconButton icon="refresh" label="reset" onPress={onReset} />
+            <CircleButton onPress={onAddSticker} />
+            <IconButton icon="download" label="download" onPress={onDownload} />
+          </View>
+        </View>
+      ) : (
+        <View style={{ alignItems: "center" }}>
+          <Button
+            title="choose a photo"
+            onPressFn={() => pickImage()}
+            btnStyle={{
+              backgroundColor: "#1A1A1A",
+              marginTop: 20,
+              borderWidth: 1,
+              borderColor: "gray",
+            }}
+            textStyle={{ color: "white", fontWeight: "bold" }}
+          />
 
-      <Button
-        title="use this photo"
-        onPressFn={() => {
-          console.log("button pressed");
-        }}
-        btnStyle={{
-          backgroundColor: "#1A1A1A",
-          marginTop: 20,
-          marginBottom: 20,
-          borderWidth: 1,
-          borderColor: "gray",
-        }}
-        textStyle={{ color: "white", fontWeight: "bold" }}
-      />
+          <Button
+            title="use this photo"
+            onPressFn={() => {
+              setIsShownOptions(true);
+            }}
+            btnStyle={{
+              backgroundColor: "#1A1A1A",
+              marginTop: 20,
+              marginBottom: 20,
+              borderWidth: 1,
+              borderColor: "gray",
+            }}
+            textStyle={{ color: "white", fontWeight: "bold" }}
+          />
+        </View>
+      )}
+      <EmojiPicker
+        isVisible={isEmojiPickerVisible}
+        onClose={onCloseEmojiPicker}
+      >
+        <EmojiList
+          onCloseModal={onCloseEmojiPicker}
+          onSelect={setPickedEmojiFn}
+        />
+      </EmojiPicker>
     </SafeAreaView>
   );
 }
@@ -80,5 +135,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: "#1E90FF",
+  },
+  optionsContainer: {
+    marginTop: 20,
+  },
+  optionsRow: {
+    alignItems: "center",
+    flexDirection: "row",
   },
 });
