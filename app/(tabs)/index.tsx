@@ -5,12 +5,16 @@ import Button from "@/components/Button";
 const PlaceholderImage = require("@/assets/images/background-image.png");
 
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import IconButton from "@/components/IconButton";
 import CircleButton from "@/components/CircleButton";
 import EmojiPicker from "@/components/EmojiPicker";
 import EmojiList from "@/components/EmojiList";
 import EmojiSticker from "@/components/EmojiSticker";
+
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import * as MediaLibrary from "expo-media-library";
+import { captureRef } from "react-native-view-shot";
 
 export default function Index() {
   // persisteing the current selected image
@@ -18,6 +22,15 @@ export default function Index() {
   const [isShownOptions, setIsShownOptions] = React.useState(false);
   const [isEmojiPickerVisible, setIsEmojiPickerVisible] = React.useState(false);
   const [pickedEmoji, setPickedEmoji] = useState<any>();
+
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+  const imageRef = useRef<View>(null);
+
+  useEffect(() => {
+    if (!permissionResponse?.granted) {
+      requestPermission();
+    }
+  }, []);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -55,6 +68,7 @@ export default function Index() {
 
   const onDownload = async () => {
     // we are downloading the image and saving it
+    onSaveImageAsync();
   };
 
   const setPickedEmojiFn = (emoji: any) => {
@@ -62,14 +76,42 @@ export default function Index() {
     setIsEmojiPickerVisible(false);
   };
 
+  // screenshot and save the image
+  // we will use captureRef from react-native-view-shot
+  // and MediaLibrary from expo-media-library
+  // to save the image to the user's gallery
+  // we will use async await to handle the promises
+  // and try catch to handle the errors
+  const onSaveImageAsync = async () => {
+    try {
+      const localUri = await captureRef(imageRef, {
+        height: 440,
+        quality: 1,
+      });
+
+      await MediaLibrary.saveToLibraryAsync(localUri);
+      if (localUri) {
+        alert("Saved!");
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    // <SafeAreaView style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.imageContainer}>
-        {/* showing the selected emoji on the image.... */}
-        <ImageViewer source={PlaceholderImage} selectedImage={selectedImage} />
-        {pickedEmoji && (
-          <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
-        )}
+        <View ref={imageRef} collapsable={false}>
+          {/* showing the selected emoji on the image.... */}
+          <ImageViewer
+            source={PlaceholderImage}
+            selectedImage={selectedImage}
+          />
+          {pickedEmoji && (
+            <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
+          )}
+        </View>
       </View>
       {isShownOptions ? (
         // show options
@@ -120,7 +162,8 @@ export default function Index() {
           onSelect={setPickedEmojiFn}
         />
       </EmojiPicker>
-    </SafeAreaView>
+    </GestureHandlerRootView>
+    // </SafeAreaView>
   );
 }
 
